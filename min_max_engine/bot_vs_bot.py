@@ -3,15 +3,16 @@ from time import sleep
 import chess
 import numpy as np
 import chess.svg
-from mmEngine.agents import RandomAgent
+from mmEngine.agents import RandomAgent, MinMaxAgent
+from mmEngine.value_funtions import MaterialCount
 
 def main():
     board = chess.Board()
 
     print("game started... ")
-    bot_white = RandomAgent()
+    bot_white = MinMaxAgent()
     bot_black = RandomAgent()
-    for i in range(200):
+    for i in range(10):
         if board.is_game_over():
             break
 
@@ -30,6 +31,9 @@ def main():
         board.push(black_move)
 
     print(board)
+    (white, black) = MaterialCount(board)
+    print(f"white score is {white}")
+    print(f"black score is {black}")
 
 
 
