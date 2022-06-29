@@ -24,6 +24,8 @@ print(board)
 board.outcome()
 
 p = board.piece_at(0)
+assert p is not None
+
 p.color # true if white, false if black
 print(type(p.piece_type)) # piece types are ints
 chess.piece_name(p.piece_type)

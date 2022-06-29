@@ -25,6 +25,16 @@ def MaterialCount(board: chess.Board):
     return (white_material, black_material)
 
 def ValueFunctionMaterial(board: chess.Board):
+    out = board.outcome()
+    if out is not None:
+        winner = out.winner
+        if winner is not None:
+            # the game is over with a winner
+            if winner == board.turn:
+                return 1000
+            else:
+                return -1000
+
     (white, black) = MaterialCount(board)
 
     if board.turn:

@@ -1,3 +1,4 @@
+from typing import Optional
 from mmEngine.agents import Agent
 import numpy as np
 import chess
@@ -7,10 +8,10 @@ class RandomAgent(Agent):
     Most basic of bots, just picks random
     valid moves.
     """
-    def select_move(self, board: chess.Board) -> chess.Move:
+    def select_move(self, board: chess.Board) -> Optional[chess.Move]:
         player = board.turn
-        moves = list(board.legal_moves)
-        num_moves = len(moves)
+        moves = np.array(list(board.legal_moves))
+        num_moves = moves.shape[0]
         if num_moves == 0:
             return None
         random_moves = np.random.choice(a=moves, size=num_moves, replace=False)

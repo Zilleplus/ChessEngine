@@ -1,3 +1,4 @@
+from typing import Optional
 import chess
 from mmEngine.agents import Agent
 from mmEngine.value_funtions import ValueFunctionMaterial
@@ -29,11 +30,11 @@ class MinMaxAgent(Agent):
     """
     Chess agent using min max algorithm
     """
-    def __init__(self, evaluation_function=ValueFunctionMaterial, depth = 3):
+    def __init__(self, evaluation_function=ValueFunctionMaterial, depth: int = 3):
         self.evaluation_function = evaluation_function
         self.depth = depth
 
-    def select_move(self, board: chess.Board):
+    def select_move(self, board: chess.Board) -> Optional[chess.Move]:
         eval = self.evaluation_function
         moves = list(board.legal_moves)
 
