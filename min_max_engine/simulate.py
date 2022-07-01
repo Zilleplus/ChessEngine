@@ -1,63 +1,79 @@
-from dataclasses import dataclass
-from optparse import Option
-from typing import Optional, Coroutine
+from typing import Any, Awaitable, Optional
 import chess
 from mmEngine.agents import Agent, RandomAgent, MinMaxAgent
-from numpy import blackman
 from mmEngine.value_funtions import MaterialCount
+from attr import dataclass
+
 import asyncio
+from asyncio import Future
+from functools import partial
+from concurrent.futures import ProcessPoolExecutor
+import numpy as np
 
 @dataclass
 class Result:
     score_white: int
     score_black: int
     error: Optional[str]
+    winner: Optional[bool]
 
-def simulate(agent1: Agent, agent2: Agent, num_moves: int = 20):
+def simulate(agent1: Agent, agent2: Agent, seed: int, num_moves: int = 50):
+    np.random.seed(seed)
     b = chess.Board()
     error: Optional[str] = None
     for i in range(num_moves):
+        if b.is_game_over():
+            break
         m1 = agent1.select_move(b)
         if m1 is None:
-            error = "m1 can't find move"
+            error = "agent1 can't find move"
             break
         b.push(m1)
 
+        if b.is_game_over():
+            break
         m2 = agent2.select_move(b)
         if m2 is None:
-            error = "m2 can't find move"
+            error = "agent2 can't find move"
             break
         b.push(m2)
 
 
     (white_score, black_score) = MaterialCount(b)
 
-    return Result(white_score, black_score, error)
+    winner: Optional[bool] = None
+    outcome = b.outcome()
+    if outcome is not None:
+        winner = outcome.winner
+    return Result(white_score, black_score, error, winner)
 
-def simulate_games(agent1_factory, agent2_factory, num_games: int=10):
-    # todo: do this is parallle, takes way to long otherwise
-    # -> Find out for asyncio works.
-    # simulations: list[Coroutine] = []
-    # res = asyncio.gather(*simulations)
+async def simulate_games(agent1_factory, agent2_factory, num_games: int=10) -> list[Result]:
+    with ProcessPoolExecutor() as process_pool:
+        loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        sims = [partial(simulate, agent1_factory(), agent2_factory(), seed=i) for i in range(num_games)]
 
-    results: list[Result] = []
-    for i in range(num_games):
-        a1 = agent1_factory()
-        a2 = agent2_factory()
-        res = simulate(a1, a2, num_moves=30)
-        results.append(res)
+        coros: list[Awaitable[Result]] = [loop.run_in_executor(process_pool, call) for call in sims]
+        results: list[Result] = await asyncio.gather(*coros)
 
-    avg_white_score = sum([x.score_white for x in results])/num_games
-    print(f"average white score={avg_white_score}")
-    avg_black_score = sum([x.score_black for x in results])/num_games
-    print(f"average black score={avg_black_score}")
 
-    return results
+        avg_white_score = sum([x.score_white for x in results])/len(results)
+        print(f"average white score={avg_white_score}")
+        avg_black_score = sum([x.score_black for x in results])/len(results)
+        print(f"average black score={avg_black_score}")
+
+        white_wins: int = sum([1 if x.winner is not None and x.winner else 0 for x in results])
+        print(f"white has {white_wins} wins")
+
+        black_wins: int = sum([1 if x.winner is not None and not x.winner else 0 for x in results])
+        print(f"black has {black_wins} wins")
+
+        return results
 
 
 fac1 = lambda: MinMaxAgent()
 fac2 = lambda: RandomAgent()
-results = simulate_games(fac1, fac2,num_games=2)
+results = asyncio.run(simulate_games(fac1, fac2,num_games=20))
 
-print(results[0])
-print(results[1])
+
+for r in results:
+    print(r)
