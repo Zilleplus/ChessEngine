@@ -1,6 +1,7 @@
 from typing import Any, Awaitable, Optional
 import chess
 from mmEngine.agents import Agent, RandomAgent, MinMaxAgent
+from mmEngine.agents.minMaxAlphaBetaSearch import MinMaxAlphaBetaAgent
 from mmEngine.value_funtions import MaterialCount
 from attr import dataclass
 
@@ -70,9 +71,9 @@ async def simulate_games(agent1_factory, agent2_factory, num_games: int=10) -> l
         return results
 
 
-fac1 = lambda: MinMaxAgent()
+fac1 = lambda: MinMaxAlphaBetaAgent()
 fac2 = lambda: RandomAgent()
-results = asyncio.run(simulate_games(fac1, fac2,num_games=20))
+results = asyncio.run(simulate_games(fac1, fac2,num_games=4))
 
 
 for r in results:

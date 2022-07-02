@@ -5,7 +5,7 @@ from mmEngine.value_funtions import ValueFunctionMaterial
 import numpy as np
 import sys
 
-def MinMaxSearch(board: chess.Board, evaluation_function, depth) -> Tuple[list[chess.Move], int]:
+def MinMaxAlphaBetaSearch(board: chess.Board, evaluation_function, depth, best_white: int, best_black: int) -> Tuple[list[chess.Move], int]:
     """
     Min-max search on the board for a certain depth
 
@@ -24,7 +24,12 @@ def MinMaxSearch(board: chess.Board, evaluation_function, depth) -> Tuple[list[c
     best_moves: list[chess.Move] = []
     for m in moves:
         board.push(m)
-        moves_opponent, score_opponent = MinMaxSearch(board, evaluation_function, depth -1)
+        moves_opponent, score_opponent = MinMaxAlphaBetaSearch(
+            board,
+            evaluation_function,
+            depth -1,
+            best_white=best_white,
+            best_black=best_black)
         score = -score_opponent
         if score > best_score:
             best_score =  score
@@ -34,7 +39,7 @@ def MinMaxSearch(board: chess.Board, evaluation_function, depth) -> Tuple[list[c
     return (best_moves, best_score)
 
 
-class MinMaxAgent(Agent):
+class MinMaxAlphaBetaAgent(Agent):
     """
     Chess agent using min max algorithm
     """
@@ -51,13 +56,14 @@ class MinMaxAgent(Agent):
         best_moves: list[chess.Move] = []
         for m in moves:
             board.push(m)
-            # The evaluation function always evaluates
+            # The evaluation function always evaluates 
             # for the player that has the move.
-            # So if we make a move, and we want to know
+            # So if we make a move, and we want to know 
             # the score in respect to the player that just
             # played -> invert the cost.
             new_eval = lambda b: -self.evaluation_function(b)
-            moves, score_opponent = MinMaxSearch(board, self.evaluation_function, self.depth - 1)
+            moves, score_opponent = MinMaxAlphaBetaSearch(board, self.evaluation_function,
+                self.depth - 1, best_white=0, best_black=0)
             score = -score_opponent
             if score > best_score:
                 best_score = score
