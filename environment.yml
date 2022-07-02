@@ -4,7 +4,6 @@ channels:
   - defaults
 dependencies:
   - numpy
-  - asyncio
   - pip:
     - chess==1.9.2
     - python-chess==1.999
