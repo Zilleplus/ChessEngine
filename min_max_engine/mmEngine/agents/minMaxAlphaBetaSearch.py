@@ -2,7 +2,6 @@ from typing import Optional, Tuple
 import chess
 from mmEngine.agents import Agent
 from mmEngine.value_funtions import ValueFunctionMaterial
-import numpy as np
 import sys
 
 def MinMaxAlphaBetaSearch(board: chess.Board, evaluation_function, depth, best_white: int, best_black: int) -> Tuple[list[chess.Move], int]:
@@ -30,11 +29,24 @@ def MinMaxAlphaBetaSearch(board: chess.Board, evaluation_function, depth, best_w
             depth -1,
             best_white=best_white,
             best_black=best_black)
+
         score = -score_opponent
         if score > best_score:
             best_score =  score
             best_moves = [m] + moves_opponent
         board.pop()
+
+        if board.turn:
+            # playing with white
+            best_white = max(best_white, best_score)
+            if score_opponent < best_black:
+                # black has better options to play
+                break
+        else:
+            best_black = max(best_black, best_score)
+            if score_opponent < best_white:
+                # white has better options to play
+                break
 
     return (best_moves, best_score)
 
@@ -52,6 +64,10 @@ class MinMaxAlphaBetaAgent(Agent):
         eval = self.evaluation_function
         moves = list(board.legal_moves)
 
+        best_black: int = -sys.maxsize
+        best_white: int = -sys.maxsize
+
+
         best_score: int = -sys.maxsize
         best_moves: list[chess.Move] = []
         for m in moves:
@@ -63,12 +79,17 @@ class MinMaxAlphaBetaAgent(Agent):
             # played -> invert the cost.
             new_eval = lambda b: -self.evaluation_function(b)
             moves, score_opponent = MinMaxAlphaBetaSearch(board, self.evaluation_function,
-                self.depth - 1, best_white=0, best_black=0)
+                self.depth - 1, best_white=best_white, best_black=best_black)
             score = -score_opponent
             if score > best_score:
                 best_score = score
                 best_moves = [m] + moves
             board.pop()
+
+            if board.turn:
+                best_white = max(best_white, best_score)
+            else:
+                best_black = max(best_black, best_score)
 
         if len(best_moves) == 0:
             return None
