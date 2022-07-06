@@ -1,1 +1,1 @@
-from .load_database import load_database
+from .load_database import load_database, get_database_dir

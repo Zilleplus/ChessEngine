@@ -1,3 +1,7 @@
-from mmEngine.database import load_database
+from mmEngine.value_funtions import CreateModel, TrainModel
 
-load_database()
+def main():
+    print("Training model")
+
+if __name__ == "__main__":
+    main()
