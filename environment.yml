@@ -1,11 +1,10 @@
 name: chessengine
 channels:
-  - conda-forge
   - defaults
 dependencies:
-  - tensorflow
-  - mypy
   - numpy
+  - pip
+  - tensorflow
   - pip:
     - chess==1.9.2
     - python-chess==1.999

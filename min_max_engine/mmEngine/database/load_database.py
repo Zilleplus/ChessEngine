@@ -1,13 +1,13 @@
 from pathlib import Path
 from os.path import exists
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 from chess.pgn import read_game, read_headers
 import numpy as np
 import chess
 
 def convert(board: chess.Board) -> np.ndarray:
-    # we have 8*8=64 squares(so 64 times a byte) and one last byte to store the turn
-    x: np.ndarray = np.zeros(8*8 + 1, np.uint8)
+    # we have 8*8=64 squares(so 64 times a byte)
+    x: np.ndarray = np.zeros(8*8, np.uint8)
 
     for i in range(8*8):
         p: Optional[chess.Piece] = board.piece_at(i)
@@ -15,7 +15,8 @@ def convert(board: chess.Board) -> np.ndarray:
             continue
         x[i] = p.piece_type
 
-    x[64] = 1 if board.turn else 0
+    # Not sure if this is a smart idea.
+    # x[64] = 1 if board.turn else 0
 
     return x
 
@@ -35,29 +36,27 @@ def load_database(num_games: int) -> Optional[Tuple[np.ndarray, np.ndarray]]:
     with open(database_location) as data:
         X: list[np.ndarray] = []
         Y: list[np.int8] = []
-        for i in range(num_games):
+        for i_game in range(num_games):
             try:
                 g = read_game(data)
                 if g is None:
                     break # end of the file
+                output_value: Dict[str, int] = {'1/2-1/2':0, '0-1':-1, '1-0':1}
 
-                board = g.board()
-                outcome: Optional[chess.Outcome] = g.end().board().outcome()
-                y = np.int8(0)
-                if outcome is not None:
-                    winner: Optional[chess.Color] = outcome.winner
-                    if winner is not None:
-                        if winner:
-                            y = np.int8(1)  # white wins
-                        else:
-                            y = np.int8(-1)  # black wins
+                result: str = g.headers["Result"]
+                if result not in output_value:
+                    print(f"unkown result on game i={i_game} with headers[\"Results\"]={result}")
+                    continue
 
+                y = np.int8(output_value[result])
+
+                board = chess.Board()
                 for i, move in enumerate(g.mainline_moves()):
                     board.push(move)
                     x = convert(board)
                     X.append(x)
                     Y.append(y)
             except:
-                print(f"error on game{i}")
+                print(f"error on game i={i_game}")
         
         return (np.array(X), np.array(Y))
