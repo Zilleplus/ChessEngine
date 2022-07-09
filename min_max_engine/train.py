@@ -11,8 +11,8 @@ def main():
     print("Creating model...")
     model = CreateModel()
 
-    print("Traning model...")
-    TrainModel(model, data)
+    print("Training model...")
+    TrainModel(model, data, log_dir_board=Path("./tensorboard_log"))
     
 
 if __name__ == "__main__":

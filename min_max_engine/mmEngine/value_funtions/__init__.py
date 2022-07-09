@@ -1,2 +1,2 @@
 from .material import ValueFunctionMaterial, MaterialCount
-from .nn import CreateModel, TrainModel, NNValueFunction
+from .nn_keras import CreateModel, TrainModel, NNValueFunction
