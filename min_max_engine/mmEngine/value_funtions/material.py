@@ -1,5 +1,7 @@
 import chess
 
+from mmEngine.value_funtions.value_function import ValueFunction
+
 piece_values = {
     1 : 1, # pawn
     2 : 3, # knight
@@ -24,20 +26,27 @@ def MaterialCount(board: chess.Board):
 
     return (white_material, black_material)
 
-def ValueFunctionMaterial(board: chess.Board):
-    out = board.outcome()
-    if out is not None:
-        winner = out.winner
-        if winner is not None:
-            # the game is over with a winner
-            if winner == board.turn:
-                return 1000
-            else:
-                return -1000
 
-    (white, black) = MaterialCount(board)
+class ValueFunctionMaterial:
+    """
+    Classic material count value function
 
-    if board.turn:
-        return white - black
-    else:
-        return black - white
+    Satisfies the ValueFunction protocol
+    """
+    def __call__(self, board: chess.Board) -> float:
+        out = board.outcome()
+        if out is not None:
+            winner = out.winner
+            if winner is not None:
+                # the game is over with a winner
+                if winner == board.turn:
+                    return 1000.0
+                else:
+                    return -1000.0
+
+        (white, black) = MaterialCount(board)
+
+        if board.turn:
+            return float(white - black)
+        else:
+            return float(black - white)

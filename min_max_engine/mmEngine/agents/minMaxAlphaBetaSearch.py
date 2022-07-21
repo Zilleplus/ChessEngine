@@ -1,10 +1,11 @@
+from multiprocessing.sharedctypes import Value
 from typing import Optional, Tuple
 import chess
 from mmEngine.agents import Agent
-from mmEngine.value_funtions import ValueFunctionMaterial
+from mmEngine.value_funtions import ValueFunctionMaterial, ValueFunction
 import sys
 
-def MinMaxAlphaBetaSearch(board: chess.Board, evaluation_function, depth, best_white: int, best_black: int) -> Tuple[list[chess.Move], int]:
+def MinMaxAlphaBetaSearch(board: chess.Board, evaluation_function: ValueFunction, depth, best_white: int, best_black: int) -> Tuple[list[chess.Move], int]:
     """
     Min-max search on the board for a certain depth
 
@@ -55,8 +56,9 @@ class MinMaxAlphaBetaAgent(Agent):
     """
     Chess agent using min max algorithm
     """
+    evaluation_function: ValueFunction
     depth: int
-    def __init__(self, evaluation_function=ValueFunctionMaterial, depth: int = 3):
+    def __init__(self, evaluation_function: ValueFunction=ValueFunctionMaterial(), depth: int = 3):
         self.evaluation_function = evaluation_function
         self.depth = depth
 
@@ -72,12 +74,6 @@ class MinMaxAlphaBetaAgent(Agent):
         best_moves: list[chess.Move] = []
         for m in moves:
             board.push(m)
-            # The evaluation function always evaluates 
-            # for the player that has the move.
-            # So if we make a move, and we want to know 
-            # the score in respect to the player that just
-            # played -> invert the cost.
-            new_eval = lambda b: -self.evaluation_function(b)
             moves, score_opponent = MinMaxAlphaBetaSearch(board, self.evaluation_function,
                 self.depth - 1, best_white=best_white, best_black=best_black)
             score = -score_opponent
