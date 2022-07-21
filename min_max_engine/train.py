@@ -11,16 +11,15 @@ def main():
 
     network_file_path=Path("./trial_network.keras")
 
-    print("Creating model...")
-    model = CreateModel()
-
-    # print("Loading model...")
-    # model = LoadModel(network_file_path)
-
+    if not network_file_path.exists():
+        print(f"{network_file_path} does not exist, creating new model...")
+        model = CreateModel()
+    else:
+        print(f"Loading model at {network_file_path}...")
+        model = LoadModel(network_file_path)
 
     print("Training model...")
     TrainModel(model, data,save_path=network_file_path)
     
-
 if __name__ == "__main__":
     main()
