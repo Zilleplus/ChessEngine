@@ -3,7 +3,7 @@ from time import sleep
 import chess
 import numpy as np
 import chess.svg
-from mmEngine.agents import RandomAgent, MinMaxAgent, minMaxAlphaBetaSearch, Agent
+from mmEngine.agents import RandomAgent, MinMaxAgent, MinMaxAlphaBetaAgent, Agent
 from mmEngine.value_funtions import NNKerasValueFunction
 from mmEngine.value_funtions import MaterialCount
 from pathlib import Path
@@ -13,7 +13,7 @@ def main():
     nn_location = Path("./trial_network.keras")
 
     print("game started... ")
-    bot_white = minMaxAlphaBetaSearch(NNKerasValueFunction(nn_location))
+    bot_white = MinMaxAlphaBetaAgent(NNKerasValueFunction(nn_location))
     bot_black = RandomAgent()
     for i in range(40):
         if board.is_game_over():
