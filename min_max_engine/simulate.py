@@ -1,15 +1,15 @@
+from multiprocessing import get_context
 from typing import Any, Awaitable, Optional
 import chess
-from mmEngine.agents import Agent, RandomAgent, MinMaxAgent
-from mmEngine.agents.minMaxAlphaBetaSearch import MinMaxAlphaBetaAgent
-from mmEngine.value_funtions import MaterialCount
+from mmEngine.agents import Agent, RandomAgent, MinMaxAgent, MinMaxAlphaBetaAgent
+from mmEngine.value_funtions import MaterialCount, NNKerasValueFunction, ValueFunctionMaterial
 from dataclasses import dataclass
 
 import asyncio
-from asyncio import Future
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
+from pathlib import Path
 
 @dataclass
 class Result:
@@ -49,7 +49,8 @@ def simulate(agent1: Agent, agent2: Agent, seed: int, num_moves: int = 50):
     return Result(white_score, black_score, error, winner)
 
 async def simulate_games(agent1_factory, agent2_factory, num_games: int=10) -> list[Result]:
-    with ProcessPoolExecutor() as process_pool:
+    context = get_context('spawn')
+    with ProcessPoolExecutor(mp_context=context) as process_pool:
         loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
         sims = [partial(simulate, agent1_factory(), agent2_factory(), seed=i) for i in range(num_games)]
 
@@ -72,10 +73,14 @@ async def simulate_games(agent1_factory, agent2_factory, num_games: int=10) -> l
 
 
 def main() -> None:
-    fac1 = lambda: MinMaxAlphaBetaAgent(depth=3)
-    #fac1 = lambda: MinMaxAgent(depth=3)
+    # At the moment tensorflow can't seem to allocate the memory in multiprocesssing,
+    # use the simulate_serial instead...
+    nn_location = Path("./trial_network.keras")
+    # nnEvalFunc = NNKerasValueFunction(nn_location)
+
+    fac1 = lambda: MinMaxAlphaBetaAgent(evaluation_function=ValueFunctionMaterial(), depth=3)
     fac2 = lambda: RandomAgent()
-    results = asyncio.run(simulate_games(fac1, fac2,num_games=4))
+    results = asyncio.run(simulate_games(fac1, fac2,num_games=20))
 
     for r in results:
         print(r)

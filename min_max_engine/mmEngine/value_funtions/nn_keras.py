@@ -4,6 +4,7 @@ import tensorflow as tf # type: ignore
 from mmEngine.value_funtions.value_function import ValueFunction  # type: ignore
 import tensorflow.keras as keras  # type: ignore
 import tensorflow.keras.layers as layers  # type: ignore
+import tensorflow.keras.backend as K # type: ignore
 import numpy as np
 from typing import Optional
 from pathlib import Path
